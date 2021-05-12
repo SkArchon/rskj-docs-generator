@@ -1,0 +1,24 @@
+.Button {
+    background: #1797f5;
+    border: none;
+    color: #ffff;
+    border-radius: 4px;
+    padding: 4px 10px;
+
+    &--run-button {
+        width: 100%;
+    }
+
+    &--try-button {
+        float:right;
+    }
+}
+
+.Button:disabled {
+    background: #71bdf5;
+}
+  
+pre {
+    white-space: inherit;
+    margin-top: 5px;
+}

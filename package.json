@@ -1,0 +1,15 @@
+{
+  "name": "rskj-docs-generator",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "generate": "node ./index.js $npm_config_path $npm_config_recompile",
+    "install-subdirectories": "node ./install-subdirectories"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "fs-extra": "^10.0.0"
+  }
+}

@@ -1,0 +1,47 @@
+<template>
+  <div class="Method-Wrapper">
+    <div class="Method-Wrapper__header Method-Wrapper__header--model-entry"
+        @click="toggleExpand">
+        <div
+            class="Method-Wrapper__header__title">
+            <%= model.modelName %>
+        </div>
+        <div class="Method-Wrapper__header__expand-button">
+            <i class="fa fa-chevron-down fa-lg" v-if="!expanded"></i>
+            <i class="fa fa-chevron-up fa-lg"  v-if="expanded"></i>
+        </div>
+    </div>
+    <div class="Method-Wrapper__body Method-Wrapper__body--model-entry"
+        v-if="expanded">
+            <pre>
+                <!-- todo : generate for the variable in the js as well-->
+                <code class="hljs">
+<%- model.modelHtml %>
+                </code>
+            </pre>
+    </div>
+  </div>
+</template>
+
+<script lang="ts">
+    import { Component, Prop, Vue } from 'vue-property-decorator';
+    import axios from 'axios';
+    import { COMMON_JSON_RPC_VALUES, INDENT_LENGTH_JSON_STRINGIFY } from '../constants';
+
+    @Component
+    export default class <%= model.className %> extends Vue {
+      private expanded: boolean = false;
+
+      public toggleExpand(){
+        this.expanded = !this.expanded;
+      }
+    }
+</script>
+    
+<!-- Add "scoped" attribute to limit CSS to this component only -->
+<style scoped lang="scss">
+    @import '../styles/details-entry.scss';
+</style>
+
+
+

@@ -1,0 +1,261 @@
+<template>
+    <div>
+        <div class="container-fluid methods">
+            <div class="header">
+                <div class="row header-row">
+                    <div class="col">
+                        <h1><%= title %></h1>
+                        <div class="description">
+                          <%= description %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="read-apis">
+                <div class="row">
+                    <div class="col section-wrapper">
+                        <h3 class="section-header">Read APIs</h3>
+                        <div class="label-header">Select Read API Network</div>
+                        <div>
+                            <select class="network-select" v-model="details.networkUrlOnSelect" @change="changeNetworkSelect">
+                                <option v-for="network of networksList" :value="network.url" :key="network.url">
+                                    {{ network.name }}
+                                </option>
+                            </select>
+                            <input :value="details.networkUrl"
+                                   @change="networkTextChanged"
+                                   class="network-url"
+                                   :disabled="!enableCustom"
+                                   type="text">
+                        </div>
+                    </div>
+                </div>
+                <% readMethods.forEach(readMethod => { %>
+                  <div class="row">
+                    <div class="col">
+                      <<%= readMethod.className %>></<%= readMethod.className %>>
+                    </div>
+                  </div> 
+                <% }) %>
+            </div>
+  
+            <div class="write-apis">
+                <div class="row">
+                    <div class="col section-wrapper write-wrapper">
+                        <h3 class="section-header write-header">Write APIs</h3>
+                        <div class="connect-wallet-button-wrapper">
+                          <button class="Button" @click="connectWallet" :disabled="walletConnectedStatus === 'CONNECTED'">
+                            <template v-if="walletConnectedStatus === 'NOT_CONNECTED'">
+                              Connect Wallet
+                            </template>
+                            <template v-if="walletConnectedStatus === 'CONNECTED'">
+                              Wallet Connected                               
+                            </template>
+                          </button>
+                        </div>
+                    </div>
+                </div>
+                <% writeMethods.forEach(writeMethod => { %>
+                  <div class="row">
+                    <div class="col">
+                      <<%= writeMethod.className %>></<%= writeMethod.className %>>
+                    </div>
+                  </div>
+                <% }) %>
+            </div>
+
+            <% if (models && models.length && models.length > 0) { %>
+              <div class="api-models">
+                <div class="row">
+                    <div class="col section-wrapper">
+                        <h3 class="section-header">API Response / Request Models</h3>
+                    </div>
+                </div>
+                <% models.forEach(model => { %>
+                  <div class="row">
+                    <div class="col">
+                      <div>
+                        <a id="<%= model.modelKey %>"></a>
+                      </div>
+                      <<%= model.className %>></<%= model.className %>>
+                    </div>
+                  </div>
+                <% }) %>
+              </div>
+            <% } %>
+        </div>
+    </div>
+  </template>
+  
+  <script lang="ts">
+  import { Component, Model, Vue } from 'vue-property-decorator';
+  import Web3 from 'web3';
+  
+  <% readMethods.forEach(readMethod => { %>
+    import <%= readMethod.className %> from './components/<%= readMethod.fileName %>';
+  <% }) %>
+  <% writeMethods.forEach(writeMethod => { %>
+    import <%= writeMethod.className %> from './components/<%= writeMethod.fileName %>';
+  <% }) %>
+  <% if (models && models.length && models.length > 0) { %>
+    <% models.forEach(model => { %>
+      import <%= model.className %> from './components/<%= model.fileName %>';
+    <% }) %>
+  <% } %>
+  
+  @Component({
+    components: {
+      <% readMethods.forEach(readMethod => { %>
+        <%= readMethod.className %>,
+      <% }) %>
+      <% writeMethods.forEach(writeMethod => { %>
+        <%= writeMethod.className %>,
+      <% }) %>
+      <% if (models && models.length && models.length > 0) { %>
+        <% models.forEach(model => { %>
+          <%= model.className %>,
+        <% }) %>
+      <% } %>
+    },
+  })
+  export default class App extends Vue {
+    public enableCustom = false;
+
+    public walletConnectedStatus = 'NOT_CONNECTED';
+  
+    public networksList = [{
+        url: 'https://public-node.testnet.rsk.co',
+        name: 'Testnet'
+      }, {
+        url: 'https://public-node.rsk.co',
+        name: 'Mainnet'
+      }, {
+        url: 'custom',
+        name: 'Custom'
+      }];
+  
+    public details = {
+      networkUrl: this.networksList[0].url,
+      networkUrlOnSelect: this.networksList[0].url,
+    };
+
+    created() {
+      this.processNetworkUrlWhenLoaded();
+      this.processWalletConnectionWhenLoaded();
+    }
+
+    private matchSelectedNetworkUrl(networkUrl) {
+      for(const networkEntry of this.networksList) {
+        if(networkEntry.url === networkUrl) {
+          return networkEntry.url;
+        }
+      }
+      return 'custom';
+    }
+
+    private processNetworkUrlWhenLoaded() {
+      const networkUrl = localStorage['networkUrl'];
+
+      if(networkUrl) {
+        Vue.prototype.$readHostUrl = this.networksList[0].url;
+        this.details.networkUrl = networkUrl;
+        
+        this.details.networkUrlOnSelect = this.matchSelectedNetworkUrl(networkUrl);
+      } else {
+        Vue.prototype.$readHostUrl = this.networksList[0].url;
+        localStorage['networkUrl'] = this.details.networkUrl;
+      }
+    }
+
+    private processWalletConnectionWhenLoaded() {
+      const storedWalletConnectedStatus = localStorage['walletConnectedStatus'];
+      
+      const walletConnectedStatus = (storedWalletConnectedStatus)
+        ? storedWalletConnectedStatus
+        : 'NOT_CONNECTED';
+
+      this.setWalletConnectedStatus(walletConnectedStatus);
+
+      if(this.walletConnectedStatus === 'CONNECTED') {
+        const ethereum = (window as any).ethereum;
+        if (typeof ethereum !== 'undefined') {
+          Vue.prototype.$web3Result = ethereum;
+          const accounts = ethereum.request({
+            method: 'eth_requestAccounts',
+          })
+          .catch(_error => {
+            this.setWalletConnectedStatus('NOT_CONNECTED');
+            Vue.prototype.$web3Result = null;
+            console.log('We were unable to connect to your wallet on load')
+            console.log(_error);
+          });
+        }
+        else {
+          this.setWalletConnectedStatus('NOT_CONNECTED');
+        }
+      }
+    }
+      
+  
+    updatedNetworkUrl(networkUrl: any) {
+      this.details.networkUrl = networkUrl;
+      localStorage['networkUrl'] = networkUrl;
+      Vue.prototype.$readHostUrl = networkUrl;
+    }
+  
+    networkTextChanged(event: any) {
+      const networkUrl = event.target.value;
+      this.updatedNetworkUrl(networkUrl);
+    }
+    
+    public changeNetworkSelect(event: any) {
+      const networkUrl = event.target.value;
+      if (networkUrl === 'custom') {
+        this.enableCustom = true;
+        this.updatedNetworkUrl('');
+      } else {
+        this.enableCustom = false;
+        this.updatedNetworkUrl(networkUrl);
+      }    
+    }
+
+    private setWalletConnectedStatus(status) {
+      localStorage['walletConnectedStatus'] = status;
+      this.walletConnectedStatus = status;
+    }
+  
+    public connectWallet() {
+      const ethereum = (window as any).ethereum;
+      if (typeof ethereum !== 'undefined') {
+        // Request account access if needed
+        const accounts = ethereum.request({
+          method: 'eth_requestAccounts',
+        })
+        .then(result => {
+          this.setWalletConnectedStatus('CONNECTED');
+          Vue.prototype.$web3Result = ethereum;
+        })
+        .catch(_error => {
+          this.setWalletConnectedStatus('NOT_CONNECTED');
+          alert('We were unable to connect to your wallet');
+          Vue.prototype.$web3Result = null;
+          console.log(_error);
+        });
+      }
+        // else if ((window as any).web3) {
+        // // Deprecated web3 provider
+        // Vue.prototype.$web3Result = new Web3((window as any).web3.currentProvider);
+        // // no need to ask for permission
+        // } 
+      else {
+        alert('No web3 provider detected');
+        return;
+      }
+    }
+  }
+  </script>
+  
+  <style lang="scss">
+    @import './styles/app.scss';
+  </style>
+  
