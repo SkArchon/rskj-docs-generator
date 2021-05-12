@@ -43,7 +43,7 @@ The library supports (and in some cases require) using yaml files to define desc
 The module will look for the `@JsonRpcDoc` annotations. And will process the resulting methods that were annotated. The annotations are currently directly implemented in the Rskj repository. The dependency sharing is not required since this is done via traversing the source.
 
     * **Why Expressinve Annotations?**
-    The documentation annotations are expressive (in that they take up multiple lines in order to document the method). This was designed on purpose, as opposed to having the bulk of the detail in the yaml files. This is was so that all of the details whenever making a change would be in the developers vision, thus prompting the developer to make more active changes to the documentation. Having the details in bulk in a YML would result in a more "out of sight, out of mind" approach.
+    The documentation annotations are expressive (in that they take up multiple lines in order to document the method). This was designed on purpose, as opposed to having the bulk of the detail in the yaml files. This is was so that all of the details whenever making a change would be in the developers vision, thus prompting the developer to make more active changes to the documentation. Having the details in bulk in a YML would result in the documentation being "out of sight, out of mind", which would result in potentially higher chances of documentation not being updated when any RPC methods change.
 
 3. Processed Output
 Currently the json is outputted directly by the module to stdout, this is as the script that calls this module takes the value from stdout. However if required
