@@ -1,0 +1,24 @@
+{
+  "title" : "Title",
+  "description" : "Description",
+  "methodDetails" : [ {
+    "method" : "validateInputParameterMultiple",
+    "description" : "",
+    "summary" : "",
+    "methodType" : "READ",
+    "requestDetails" : {
+      "inputParams" : [ [ {
+        "parameterName" : "address",
+        "description" : "**DATA**, 20 Bytes - address to check for balance.",
+        "modelKey" : null
+      } ], [ {
+        "parameterName" : "value",
+        "description" : "**BOOLEAN**, a value",
+        "modelKey" : null
+      } ] ],
+      "requestExamples" : [ "{ \"params\": [\"0xc94770007dda54cF92009BFF0dE90c06F603a09f\", \"latest\"] }\n" ]
+    },
+    "responseDetails" : [ ]
+  } ],
+  "models" : { }
+}

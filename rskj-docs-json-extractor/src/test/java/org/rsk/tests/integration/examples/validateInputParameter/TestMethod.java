@@ -1,0 +1,21 @@
+package org.rsk.tests.integration.examples.validateInputParameter;
+
+import org.rsk.docs.annotation.JsonRpcDoc;
+import org.rsk.docs.annotation.JsonRpcDocRequestParameter;
+
+public class TestMethod {
+
+    @JsonRpcDoc(
+        isWriteMethod = false,
+        requestExamples = "validateInputParameter.yaml/request/default",
+        requestParams = {
+            @JsonRpcDocRequestParameter(
+                name = "address",
+                description = "**DATA**, 20 Bytes - address to check for balance."
+            )
+        }
+    )
+    public String validateInputParameter(String address) {
+        return "";
+    }
+}

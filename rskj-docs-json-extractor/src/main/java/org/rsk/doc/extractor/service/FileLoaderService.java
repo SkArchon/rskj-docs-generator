@@ -8,6 +8,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.rsk.doc.extractor.Constants;
+import org.rsk.doc.extractor.dto.yaml.input.InputDocsInfo;
 import org.rsk.doc.extractor.dto.yaml.input.InputMethodInfo;
 
 import java.io.File;
@@ -15,6 +16,8 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+
+import static org.rsk.doc.extractor.Constants.DOCS_INFO_FILE_NAME;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class FileLoaderService {
@@ -30,6 +33,11 @@ public class FileLoaderService {
         SourceRoot sourceRoot = new SourceRoot(projectRoot);
         List<ParseResult<CompilationUnit>> parseResults = sourceRoot.tryToParse();
         return parseResults;
+    }
+
+    public InputDocsInfo getDocsInfo(String yamlPath) throws IOException {
+        String docsInfoPath = yamlPath + "/" + DOCS_INFO_FILE_NAME;
+        return yamlMapper.readValue(new File(docsInfoPath), InputDocsInfo.class);
     }
 
     public String getValueFromPath(String path) {

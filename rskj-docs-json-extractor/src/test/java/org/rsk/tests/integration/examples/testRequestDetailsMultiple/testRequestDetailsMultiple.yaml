@@ -1,0 +1,7 @@
+---
+request:
+  default: >
+    { "params": ["0xc94770007dda54cF92009BFF0dE90c06F603a09f", "latest"] }
+  different: >
+    { "params": ["0xc94770007dda54cF92009BFF0dE90c06F603a09f", "earliest"] }
+

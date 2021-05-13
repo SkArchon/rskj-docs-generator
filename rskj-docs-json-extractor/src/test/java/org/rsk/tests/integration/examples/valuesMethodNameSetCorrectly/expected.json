@@ -1,0 +1,16 @@
+{
+  "title" : "Title",
+  "description" : "Description",
+  "methodDetails" : [ {
+    "method" : "valuesMethodNameSetCorrectly",
+    "description" : "",
+    "summary" : "",
+    "methodType" : "READ",
+    "requestDetails" : {
+      "inputParams" : [ ],
+      "requestExamples" : [ "{ \"params\": [\"0xc94770007dda54cF92009BFF0dE90c06F603a09f\", \"latest\"] }\n" ]
+    },
+    "responseDetails" : [ ]
+  } ],
+  "models" : { }
+}

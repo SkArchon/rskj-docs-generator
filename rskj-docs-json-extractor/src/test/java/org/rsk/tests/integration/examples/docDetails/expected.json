@@ -1,0 +1,16 @@
+{
+  "title" : "RSKJ JSON-RPC APIs",
+  "description" : "This documentation contains information above the JSON RPC methods available in a RSK Node and how to use them.\nIt also contains an interactive option where you have the choice of running an actual request from within the documentation.",
+  "methodDetails" : [ {
+    "method" : "docDetails",
+    "description" : "",
+    "summary" : "",
+    "methodType" : "READ",
+    "requestDetails" : {
+      "inputParams" : [ ],
+      "requestExamples" : [ "{ \"params\": [\"0xc94770007dda54cF92009BFF0dE90c06F603a09f\", \"latest\"] }\n" ]
+    },
+    "responseDetails" : [ ]
+  } ],
+  "models" : { }
+}

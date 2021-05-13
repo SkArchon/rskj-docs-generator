@@ -1,0 +1,24 @@
+{
+  "title" : "Title",
+  "description" : "Description",
+  "methodDetails" : [ {
+    "method" : "validateInputParameterDescriptionFromYaml",
+    "description" : "",
+    "summary" : "",
+    "methodType" : "READ",
+    "requestDetails" : {
+      "inputParams" : [ [ {
+        "parameterName" : "address",
+        "description" : "**DATA**, 20 Bytes - address to check for balance.",
+        "modelKey" : null
+      } ], [ {
+        "parameterName" : "values",
+        "description" : "**Object** - The transaction object\n  - **from**: DATA, 20 Bytes - The address the transaction is send from.\n  - **to**: DATA, 20 Bytes - (optional when creating new contract) The address the transaction is directed to.\n  - **gas**: QUANTITY - (optional, default: 90000) Integer of the gas provided for the transaction execution. It will return unused gas.\n  - **gasPrice**: QUANTITY - (optional, default: To-Be-Determined) Integer of the gasPrice used for each paid gas\n  - **value**: QUANTITY - (optional) Integer of the value sent with this transaction\n  - **data**: DATA - The compiled code of a contract OR the hash of the invoked method signature and encoded parameters. For details see Ethereum Contract ABI\n  - **nonce**: QUANTITY - (optional) Integer of a nonce. This allows to overwrite your own pending transactions that use the same nonce.\n",
+        "modelKey" : null
+      } ] ],
+      "requestExamples" : [ "{ \"params\": [\"0xc94770007dda54cF92009BFF0dE90c06F603a09f\", \"latest\"] }\n" ]
+    },
+    "responseDetails" : [ ]
+  } ],
+  "models" : { }
+}
