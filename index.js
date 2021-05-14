@@ -131,7 +131,7 @@ async function buildGradle(recompileGradle) {
 
             const { stdout, stderr } = await exec(buildCommand);
             if(stderr) {
-                throw stderr;
+                console.log('There were errors by exec, still trying build');
             }
             console.log('Completed gradle build process');
             return stderr;

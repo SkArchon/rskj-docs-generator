@@ -7,7 +7,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 
-@SuppressWarnings("unchecked")
 public class Whitebox {
 
     public static void setInternalState(Object target, String field, Object value) {
