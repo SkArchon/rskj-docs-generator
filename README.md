@@ -17,6 +17,7 @@ npm run generate --path=/pasth/to/rskj/project/rskj/rskj/rskj-core/src
 
 cd /your/clone/path/build/dist
 
+# this will start a simple server at port 8000, you can alternatively set it up in a different port if needed
 python -m SimpleHTTPServer
 ```
 
