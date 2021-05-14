@@ -12,7 +12,7 @@ npm install
 # after the root node modules are installed, use the following command to add node modules to any of the modules that require it
 npm run install-subdirectories
 
-# run the following command to generate the documentation
+# run the following command to generate the documentation (Ensure that there is no "/" at the end of the url)
 npm run generate --path=/pasth/to/rskj/project/rskj/rskj/rskj-core/src
 
 cd /your/clone/path/build/dist
@@ -66,5 +66,18 @@ As seen in the below image, which is a vue file, all of the responses are docume
 The complete file generated for `eth_getBalance` can be viewed at https://github.com/SkArchon/rskj-docs-example/blob/eb03f60075cddc7c24b72d25ee39095f4dc9f945/EthgetBalance.vue
 
 However the read and write operation section of the app is completely written dynamically.
+
+
+# Improvements
+
+1. Add unit tests for all modules, and integration tests for `rsk-docs-html-generator/rsk-templating-runner` and `rsk-docs-html-generator/rskj-docs`
+2. Make the parent node script more robust (for example, currently it requires "/" being ignored at the end of the file path)
+3. Add annotation to ignore fields in classes
+4. Currently `"` that is escaped within Strings in Java are not parsed correctly and the `\` will be visible in the final output. As an alternative `'` is recommended to be used. This is an area of improvement .
+5. Add typescript to the node scripts (thus adding type safety).
+6. Add the ability to provide an option to the `rsk-docs-json-extractor` module to save the processed JSON output directly to a file.
+7. Skip using custom singletons in the `rsk-docs-json-extractor` to emulate an *Autowired like* codebase and setup actual autowiring for the codebase.
+
+
 
 
