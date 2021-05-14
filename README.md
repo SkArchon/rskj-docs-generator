@@ -60,6 +60,11 @@ This is a Vuejs project which contains all of the html and css for our documenta
 
 This project uses vuejs and requires javascript to function, however all of the individual RPC doc sections in the project have all the details injected into them in a static manner (not rendered dynamically), even though javascript is required to load the individual RPC doc vue components into the file.
 
+As seen in the below image, which is a vue file, all of the responses are documented **statically** in the HTML.
+![Static Html](https://github.com/SkArchon/rskj-docs-example/blob/eb03f60075cddc7c24b72d25ee39095f4dc9f945/HtmlUpdated.png)
+
+The complete file generated for `eth_getBalance` can be viewed at https://github.com/SkArchon/rskj-docs-example/blob/eb03f60075cddc7c24b72d25ee39095f4dc9f945/EthgetBalance.vue
+
 However the read and write operation section of the app is completely written dynamically.
 
 
