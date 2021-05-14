@@ -68,7 +68,7 @@ The complete file generated for `eth_getBalance` can be viewed at https://github
 However the read and write operation section of the app is completely written dynamically.
 
 
-# Improvements
+## Improvements
 
 1. Add unit tests for all modules, and integration tests for `rsk-docs-html-generator/rsk-templating-runner` and `rsk-docs-html-generator/rskj-docs`
 2. Make the parent node script more robust (for example, currently it requires "/" being ignored at the end of the file path)
