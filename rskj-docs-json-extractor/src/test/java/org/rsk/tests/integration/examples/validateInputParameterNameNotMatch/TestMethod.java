@@ -1,13 +1,14 @@
-package org.rsk.tests.integration.examples.validateInputParameterMultiple;
+package org.rsk.tests.integration.examples.validateInputParameterNameNotMatch;
 
 import org.rsk.docs.annotation.JsonRpcDoc;
 import org.rsk.docs.annotation.JsonRpcDocRequestParameter;
+import org.rsk.docs.annotation.JsonRpcDocResponse;
 
 public class TestMethod {
 
     @JsonRpcDoc(
         isWriteMethod = false,
-        requestExamples = "validateInputParameterMultiple.yaml/request/default",
+        requestExamples = "validateInputParameterNameNotMatch.yaml/request/default",
         requestParams = {
             @JsonRpcDocRequestParameter(
                 name = "address",
@@ -19,11 +20,8 @@ public class TestMethod {
             )
         }
     )
-    public String validateInputParameterMultiple(String address, Boolean value) {
+    public String validateInputParameterNameNotMatch(String address, Boolean abcd) {
         return "";
     }
-
-
-
 
 }

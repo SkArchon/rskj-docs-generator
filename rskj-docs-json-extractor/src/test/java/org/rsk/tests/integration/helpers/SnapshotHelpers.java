@@ -21,6 +21,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.List;
 
+import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.assertNotNull;
 import static org.rsk.doc.extractor.Constants.DOCS_INFO_FILE_NAME;
 
 public class SnapshotHelpers {
@@ -98,6 +100,22 @@ public class SnapshotHelpers {
     public void getAndAssertValue(String testPackageName, Boolean skipYamlDocs, String... jsonPaths) {
         String value = getProcessedValueForPackage(testPackageName, skipYamlDocs);
         assertSnapshot(value, testPackageName, jsonPaths);
+    }
+
+    /**
+     * Taken from the RSKj repository
+     */
+    public static<T extends Exception>  T assertThrows(Class<T> c, Runnable f) {
+        Exception thrownException = null;
+        try {
+            f.run();
+        } catch (Exception e) {
+            thrownException = e;
+        }
+
+        assertNotNull(thrownException);
+        assertEquals(thrownException.getClass(), c);
+        return c.cast(thrownException);
     }
 
 

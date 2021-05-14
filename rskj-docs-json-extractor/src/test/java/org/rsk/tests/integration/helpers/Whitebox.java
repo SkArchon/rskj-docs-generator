@@ -2,7 +2,10 @@ package org.rsk.tests.integration.helpers; /**
  * This was taken from Mockito an older version since it was deprecated however
  * we require this in our situation
  */
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
 
 public class Whitebox {
 
@@ -38,6 +41,36 @@ public class Whitebox {
             return clazz.getDeclaredField(field);
         } catch (NoSuchFieldException e) {
             return null;
+        }
+    }
+
+    public static <T> T constructClassFromPrivateNoArgsConstructor(Class<T> clazz) {
+        try {
+            Constructor<?> constructor = clazz.getDeclaredConstructor();
+            constructor.setAccessible(true);
+            T instance = (T) constructor.newInstance();
+            return instance;
+        }
+        catch (IllegalAccessException | InvocationTargetException | InstantiationException | NoSuchMethodException e) {
+            return null;
+        }
+    }
+
+    public static void setFinalStatic(Object target, String fieldName, Object newValue) {
+        try {
+            Class<?> c = target.getClass();
+            Field field = getFieldFromHierarchy(c, fieldName);
+            field.setAccessible(true);
+
+            Field modifiersField = Field.class.getDeclaredField("modifiers");
+            modifiersField.setAccessible(true);
+            modifiersField.setInt(field, field.getModifiers() & ~Modifier.FINAL);
+
+            field.set(null, newValue);
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 }

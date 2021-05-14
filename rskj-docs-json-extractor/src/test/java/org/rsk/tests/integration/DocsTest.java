@@ -1,6 +1,8 @@
 package org.rsk.tests.integration;
 
 import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -10,18 +12,22 @@ import org.rsk.doc.extractor.service.FileLoaderService;
 import org.rsk.tests.integration.helpers.SnapshotHelpers;
 import org.rsk.tests.integration.helpers.Whitebox;
 
+import java.io.FileNotFoundException;
+
 @RunWith(MockitoJUnitRunner.class)
 public class DocsTest {
 
-    private final ExtractorInstructions extractorInstructions = ExtractorInstructions.getInstance();
-    private final FileLoaderService fileLoaderService = FileLoaderService.getInstance();
+    private ExtractorInstructions extractorInstructions;
+    private FileLoaderService fileLoaderService;
+    private SnapshotHelpers snapshotHelpers;
 
-    private final SnapshotHelpers snapshotHelpers;
-
-    // TODO : This might need to be changed
-    public DocsTest () {
+    public DocsTest() {
         String BASE_PATH = System.getProperty("user.dir");
-        snapshotHelpers = new SnapshotHelpers(extractorInstructions, fileLoaderService, BASE_PATH);
+
+        fileLoaderService = FileLoaderService.getInstance();
+        extractorInstructions = ExtractorInstructions.getInstance();
+
+        snapshotHelpers = new SnapshotHelpers(extractorInstructions, this.fileLoaderService, BASE_PATH);
     }
 
     @After
@@ -148,6 +154,17 @@ public class DocsTest {
     }
 
     @Test
+    public void validateCustomClassValueProcessed() {
+        String testPackageName = "validateCustomClassValueProcessed";
+        String[] paths = {
+            "$.methodDetails[0].requestDetails.inputParams[0][0].modelKey",
+            "$.models.VariableDTO",
+            "$.models.AdditionalDTO"
+        };
+        snapshotHelpers.getAndAssertValue(testPackageName, paths);
+    }
+
+    @Test
     public void validateInputParameterDescriptionFromYaml() {
         String testPackageName = "validateInputParameterDescriptionFromYaml";
         String[] paths = {
@@ -237,5 +254,67 @@ public class DocsTest {
         };
         snapshotHelpers.getAndAssertValue(testPackageName, paths);
     }
+
+    @Test
+    public void validateBinaryExprStringProcessing() {
+        // We skip mocking getting docsInfo and let our app look for it
+        // when it has then not been defined
+        String testPackageName = "validateBinaryExprStringProcessing";
+        String[] paths = {
+            "$.methodDetails[0].description",
+        };
+        snapshotHelpers.getAndAssertValue(testPackageName, paths);
+    }
+
+    @Test
+    public void getMethodInfoFromFileNameDoesNotExist() {
+        // We skip mocking getting docsInfo and let our app look for it
+        // when it has then not been defined
+        String testPackageName = "getMethodInfoFromFileNameDoesNotExist";
+        RuntimeException fileNotFoundExceptionWrapper = SnapshotHelpers.assertThrows(
+            RuntimeException.class,
+            () -> snapshotHelpers.getAndAssertValue(testPackageName, false)
+        );
+        Assert.assertEquals(fileNotFoundExceptionWrapper.getCause().getClass(), FileNotFoundException.class);
+        String containsMessage = "docs_info.yaml (No such file or directory)";
+        Assert.assertTrue(fileNotFoundExceptionWrapper.getMessage().contains(containsMessage));
+    }
+
+    @Test
+    public void validateInputParameterNameNotMatch() {
+        // TODO : Change this so the custom error is thrown
+        String testPackageName = "validateInputParameterNameNotMatch";
+
+        SnapshotHelpers.assertThrows(
+            RuntimeException.class,
+            () -> snapshotHelpers.getAndAssertValue(testPackageName)
+        );
+    }
+
+    @Test
+    public void getMethodInfoWithInvalidPathDefinition() {
+        String testPackageName = "getMethodInfoWithInvalidPathDefinition";
+        RuntimeException exception = SnapshotHelpers.assertThrows(
+            RuntimeException.class,
+            () -> snapshotHelpers.getAndAssertValue(testPackageName)
+        );
+        String containsMessage = "The path should have a path mapping to the yaml value";
+        Assert.assertTrue(exception.getMessage().contains(containsMessage));
+    }
+
+    @Test
+    public void getMethodInfoKeyNameNotDefined() {
+        String testPackageName = "getMethodInfoKeyNameNotDefined";
+        RuntimeException exception = SnapshotHelpers.assertThrows(
+            RuntimeException.class,
+            () -> snapshotHelpers.getAndAssertValue(testPackageName)
+        );
+        String key = "testvalues";
+        String containsMessage = "unrecognized value " + key;
+        Assert.assertTrue(exception.getMessage().contains(containsMessage));
+    }
+
+
+
 
 }

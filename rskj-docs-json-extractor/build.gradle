@@ -5,6 +5,7 @@
 plugins {
     id 'java'
     id 'maven-publish'
+    id 'jacoco'
 }
 
 //create a single Jar with all dependencies
@@ -23,6 +24,34 @@ repositories {
     maven {
         url = 'https://repo.maven.apache.org/maven2'
     }
+}
+
+jacoco {
+    toolVersion = "0.8.6"
+    reportsDir = file("$buildDir/jacoco")
+}
+
+jacocoTestReport {
+    dependsOn test // tests are required to run before generating the report
+
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: 'org/rsk/doc/extractor/dto/**')
+        }))
+    }
+
+    reports {
+        xml.enabled false
+        csv.enabled false
+        html.destination layout.buildDirectory.dir('jacocoHtml').get().asFile
+    }
+}
+
+test {
+    useJUnit()
+    maxHeapSize = '1G'
+
+    finalizedBy jacocoTestReport
 }
 
 ext {
