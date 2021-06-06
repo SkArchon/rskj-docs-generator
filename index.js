@@ -73,6 +73,7 @@ async function compileHtml() {
         console.log('Completed html compiling process');
     }
     catch(e) {
+        console.error(e)
         throw e;
     }
 }
@@ -81,10 +82,10 @@ async function generateHtml(inputJson) {
     try {
         console.log('Starting html generating process');
 
-        const command = `node index.js ${inputJson}`;
+        const command = `npm run compile --inputJson=${inputJson}`;
         const { stdout, stderr } = await exec(command);
 
-        if(stderr) {
+        if(!stdout.includes("HTML-SUCCESS") && stderr) {
             throw stderr;
         }
 

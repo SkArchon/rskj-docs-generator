@@ -1,5 +1,6 @@
 package org.rsk.doc.extractor.dto.yaml.output;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,5 +18,6 @@ public class MethodDetails {
     private MethodType methodType;
     private RequestDetails requestDetails;
     private List<ResponseDetails> responseDetails;
+    private JsonNode responseSchema;
 
 }

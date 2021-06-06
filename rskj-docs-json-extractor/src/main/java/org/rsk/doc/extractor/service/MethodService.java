@@ -1,5 +1,6 @@
 package org.rsk.doc.extractor.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.javaparser.ParseResult;
 import com.github.javaparser.ast.CompilationUnit;
@@ -17,6 +18,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.json.JSONObject;
 import org.rsk.doc.extractor.Constants;
 import org.rsk.doc.extractor.dto.MethodAndAnnotation;
 import org.rsk.doc.extractor.dto.yaml.output.*;
@@ -34,11 +36,16 @@ public class MethodService {
     private static final MethodService instance = new MethodService();
 
     private final DefaultParamService defaultParamService = DefaultParamService.getInstance();
-    private final ExtractAnnotedMethodService extractAnnotedMethodService = ExtractAnnotedMethodService.getInstance();
     private final PropertiesService propertiesService = PropertiesService.getInstance();
     private final FileLoaderService fileLoaderService = FileLoaderService.getInstance();
     private final ClassProcessorService classProcessorService = ClassProcessorService.getInstance();
 
+    /**
+     * In case of method overloads make sure to extract the primary method which contains most of the documentation.
+     * Return default in case there are no overloads.
+     * @param methodAndAnnotationList method annotations
+     * @return primary entry
+     */
     private MethodAndAnnotation getPrimary(List<MethodAndAnnotation> methodAndAnnotationList) {
         if(methodAndAnnotationList.size() > 1) {
             Map<String, Map<String, Expression>> annotationDefaultValues = propertiesService.getAnnotationDefaultValues();
@@ -55,11 +62,18 @@ public class MethodService {
         return methodAndAnnotationList.get(0);
     }
 
+    /**
+     * This method is reponsible for extracting each individual method in the json
+     * @param methodAndAnnotationList all methods present
+     * @return a processed json containing all the details pertaining to this method
+     */
     public MethodDetails extractMethod(List<MethodAndAnnotation> methodAndAnnotationList) {
         Map<String, Map<String, Expression>> annotationDefaultValues = propertiesService.getAnnotationDefaultValues();
 
         MethodAndAnnotation methodAndAnnotation = getPrimary(methodAndAnnotationList);
         MethodDeclaration methodDeclaration = methodAndAnnotation.getMethodDeclaration();
+
+        String methodName = methodDeclaration.getNameAsString();
 
         Map<String, Expression> processedPairValues = defaultParamService.getProcessedPairValues(
             annotationDefaultValues, methodAndAnnotation.getAnnotationExpr());
@@ -87,6 +101,17 @@ public class MethodService {
             ? requestExampleExpression.asArrayInitializerExpr().getValues()
             : Arrays.asList(requestExampleExpression);
 
+        RequestDetails requestDetails = getRequestDetails(methodAndAnnotationList, methodName, requestExampleExpressionsList);
+
+        NodeList<Expression> responseArray = processedPairValues.get("responses").asArrayInitializerExpr().getValues();
+        List<ResponseDetails> responseDetails = getResponseDetails(responseArray, methodAndAnnotation);
+
+        JsonNode responseJsonSchemaDetails = fileLoaderService.getJsonSchemaIfExists(methodName, "response");
+
+        return new MethodDetails(methodName, description, summary, methodType, requestDetails, responseDetails, responseJsonSchemaDetails);
+    }
+
+    private RequestDetails getRequestDetails(List<MethodAndAnnotation> methodAndAnnotationList, String methodName, List<Expression> requestExampleExpressionsList) {
         List<String> requestExampleEntries = requestExampleExpressionsList.stream()
             .map(expression -> {
                 String path = processBinaryExprString(expression);
@@ -97,15 +122,10 @@ public class MethodService {
             .filter(Objects::nonNull)
             .collect(Collectors.toList());
 
+        JsonNode requestJsonSchemaDetails = fileLoaderService.getJsonSchemaIfExists(methodName, "request");
         List<List<InputParam>> inputParams = getInputParams(methodAndAnnotationList);
-
-        NodeList<Expression> responseArray = processedPairValues.get("responses").asArrayInitializerExpr().getValues();
-        List<ResponseDetails> responseDetails = getResponseDetails(responseArray, methodAndAnnotation);
-
-        String methodName = methodDeclaration.getNameAsString();
-
-        RequestDetails requestDetails = new RequestDetails(inputParams, requestExampleEntries);
-        return new MethodDetails(methodName, description, summary, methodType, requestDetails, responseDetails);
+        RequestDetails requestDetails = new RequestDetails(inputParams, requestExampleEntries, requestJsonSchemaDetails);
+        return requestDetails;
     }
 
     private List<ResponseDetails> getResponseDetails(NodeList<Expression> responses, MethodAndAnnotation methodAndAnnotation) {
@@ -151,6 +171,13 @@ public class MethodService {
         return null;
     }
 
+    /**
+     * This method gets the input parameters pertaining to a method. There are complexities by overliads such as
+     *   - Needing to track overloads, overloads can also be annotated with "usePrimary", requiring to ignore that
+     *     version
+     * @param methodAndAnnotationList
+     * @return
+     */
     private List<List<InputParam>> getInputParams(List<MethodAndAnnotation> methodAndAnnotationList) {
         Map<String, Map<String, Expression>> annotationDefaultValues = propertiesService.getAnnotationDefaultValues();
 
@@ -158,14 +185,17 @@ public class MethodService {
             .map(entry -> getRequestParamsOrdered(annotationDefaultValues, entry))
             .collect(Collectors.toList());
 
+        // Get the length of the method with the largest parameters in each overload
         Optional<Integer> highestValueOptional = requestParamsList.stream()
             .map(expressions -> expressions.getAnnotations().size())
             .max(Comparator.comparing(Integer::valueOf));
 
+        // There are no input params at all
         if (!highestValueOptional.isPresent()) {
             return new ArrayList<>();
         }
 
+        // Iterate through to the maximum position and process all overloads
         return IntStream.range(0, highestValueOptional.get())
             .mapToObj(index ->
                 groupInputParamsByIndexValue(annotationDefaultValues, requestParamsList, index))
@@ -176,6 +206,7 @@ public class MethodService {
                                                           List<MethodAndAnnotation> requestParamsList,
                                                           int index) {
         List<InputParam> inputParams = new ArrayList<>();
+
         requestParamsList.forEach(methodAndAnnotation -> {
             List<AnnotationExpr> expressions = methodAndAnnotation.getAnnotations();
             if(expressions.size() > index) {
@@ -183,6 +214,8 @@ public class MethodService {
                 Map<String, Expression> processedPairs = defaultParamService.getProcessedPairValues(annotationDefaultValues, annotation);
 
                 boolean usePrimary = processedPairs.get("usePrimary").asBooleanLiteralExpr().getValue();
+
+                // Use primary is ignored as that indicates to refer to only the primary value
                 if (!usePrimary) {
                     Parameter parameter = validateAndGetParameter(methodAndAnnotation.getMethodDeclaration(), processedPairs);
                     String processedParameterName = getParameterName(processedPairs);
@@ -203,6 +236,10 @@ public class MethodService {
         return inputParams;
     }
 
+    /**
+     * Load the description from the file or annotation depending on if
+     * loadDescriptionFromFile is enabled
+     */
     private String getDescriptionAfterProcessing(Map<String, Expression> processedPairs) {
         String initialDescription = processBinaryExprString(processedPairs.get("description"));
         boolean loadDescriptionFromFile = processedPairs.get("loadDescriptionFromFile").asBooleanLiteralExpr().getValue();
@@ -235,6 +272,9 @@ public class MethodService {
             annotationDefaultValues, entry.getAnnotationExpr());
         NodeList<Expression> requestParams = processedPairValues.get("requestParams").asArrayInitializerExpr().getValues();
 
+        // Group all the annotations by name so we can set them to a specific order
+        // e.g. :- method overload 1 can have "String name" in pos 1 while the same field is in pos 2 for a different
+        // overload
         Map<String, AnnotationExpr> annotationExprByName = requestParams.stream()
             .map(expression -> {
                 AnnotationExpr annotationExpr = expression.asAnnotationExpr();
@@ -255,6 +295,7 @@ public class MethodService {
         return new MethodAndAnnotation(entry.getMethodDeclaration(), orderedExpressions);
     }
 
+    // Sometimes an alias can be set where the code uses a different name, in this cases return the alias
     private String getParameterName(Map<String, Expression> processedPairs) {
         String parameterName = processBinaryExprString(processedPairs.get("name"));
         String parameterAlias = processBinaryExprString(processedPairs.get("alias"));

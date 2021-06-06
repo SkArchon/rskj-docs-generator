@@ -27,12 +27,29 @@
     import { Component, Prop, Vue } from 'vue-property-decorator';
     import axios from 'axios';
     import { COMMON_JSON_RPC_VALUES, INDENT_LENGTH_JSON_STRINGIFY } from '../constants';
+    import { EventBus } from '../event-bus';
 
     @Component
     export default class <%= model.className %> extends Vue {
       private expanded: boolean = false;
+      private modelName = '<%= model.modelName %>';
 
-      public toggleExpand(){
+      public constructor() {
+        super();
+        EventBus.$on('Model-Expand', this.expandHandler);
+      }
+
+      private expandHandler = (modelClassName) => {
+        if(modelClassName === this.modelName) {
+          this.setExpand(true);
+        }
+      }
+
+      public setExpand(expandValue: boolean) {
+        this.expanded = expandValue;
+      }
+
+      public toggleExpand() {
         this.expanded = !this.expanded;
       }
     }

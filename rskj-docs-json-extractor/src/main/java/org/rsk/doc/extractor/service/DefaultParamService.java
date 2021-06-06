@@ -24,6 +24,16 @@ public class DefaultParamService {
 
     private static final String[] annotations = { "JsonRpcDoc", "JsonRpcDocRequestParameter", "JsonRpcDocResponse", "JsonRpcDocModelType" };
 
+    /**
+     * Since javaparser only reads the java code, it cannot actually infer any annotation default values
+     * from whenever we read an annotation that has optional params, and can only extract actual values the
+     * developer has specified.
+     *
+     * Therefore we extract all default values and substitue them in when a value hasnt been specified by the dev
+     *
+     * @param parseResults parse results
+     * @return default params for the list of annotations we process
+     */
     public Map<String, Map<String, Expression>> getAnnotationDefaultValue(List<ParseResult<CompilationUnit>> parseResults) {
         return Arrays.stream(annotations)
             .map(annotationName -> {
@@ -34,7 +44,7 @@ public class DefaultParamService {
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
-    public Map<String, Expression> getDefaultParametersForJsonRpcDocAnnotation(List<ParseResult<CompilationUnit>> parseResults,
+    private Map<String, Expression> getDefaultParametersForJsonRpcDocAnnotation(List<ParseResult<CompilationUnit>> parseResults,
                                                                                String annotationName) {
         Optional<AnnotationDeclaration> jsonRpcAnnotationDeclaration = getAnnotationDeclaration(parseResults, annotationName);
 
@@ -72,7 +82,13 @@ public class DefaultParamService {
             .findFirst();
     }
 
-
+    /**
+     * Since default params can only be inferred at runtime and javaparser only parses the source. We need to merge
+     * any annotation values specified by the dev along with the default values of the annotation
+     * @param annotationDefaultValue Default values of the annotation
+     * @param annotationExpr annotation you need to merge
+     * @return merged result of default annotation params and actual annotation params
+     */
     public Map<String, Expression> getProcessedPairValues(Map<String, Map<String, Expression>> annotationDefaultValue,
                                                           AnnotationExpr annotationExpr) {
         NodeList<MemberValuePair> pairs = (annotationExpr instanceof NormalAnnotationExpr)

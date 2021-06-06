@@ -21,6 +21,7 @@ pnpm-debug.log*
 *.njsproj
 *.sln
 *.sw?
-
 /src/components/*
 /src/App.vue
+
+/src/schema/*

@@ -5,11 +5,19 @@
   "main": "index.js",
   "author": "",
   "license": "ISC",
+  "scripts": {
+    "compile-only": "node ./index.js $npm_config_inputJson",
+    "test": "jest",
+    "compile": "npm run compile-only --inputJson=$npm_config_inputJson"
+  },
   "dependencies": {
     "ejs": "^3.1.6",
     "fs-extra": "^9.1.0",
     "highlight.js": "^10.7.2",
     "markdown-to-html": "0.0.13",
     "mustache": "^4.2.0"
+  },
+  "devDependencies": {
+    "jest": "^27.0.4"
   }
 }

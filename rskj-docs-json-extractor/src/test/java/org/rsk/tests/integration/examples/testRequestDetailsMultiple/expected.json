@@ -8,9 +8,11 @@
     "methodType" : "READ",
     "requestDetails" : {
       "inputParams" : [ ],
-      "requestExamples" : [ "{ \"params\": [\"0xc94770007dda54cF92009BFF0dE90c06F603a09f\", \"latest\"] }\n", "{ \"params\": [\"0xc94770007dda54cF92009BFF0dE90c06F603a09f\", \"earliest\"] }\n" ]
+      "requestExamples" : [ "{ \"params\": [\"0xc94770007dda54cF92009BFF0dE90c06F603a09f\", \"latest\"] }\n", "{ \"params\": [\"0xc94770007dda54cF92009BFF0dE90c06F603a09f\", \"earliest\"] }\n" ],
+      "schema" : null
     },
-    "responseDetails" : [ ]
+    "responseDetails" : [ ],
+    "responseSchema" : null
   } ],
   "models" : { }
 }

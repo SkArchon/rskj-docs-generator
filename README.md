@@ -30,6 +30,11 @@ The genrated json file (intermediate step) as well as the final html output woul
 By default the index.html will not work without a development server, this is due to the way the css and javascript imports have been set in the compiled vue file. Simply replace `=/some.cssorjs` with `=some.cssorjs`
 
 
+### rsk main project changes
+The following link contains the branch to the changes which contain the annotaitons required to process in this project
+
+https://github.com/SkArchon/rskj/tree/annotation-documentations (PR: https://github.com/rsksmart/rskj/pull/1532)
+
 ## Structure
 The project is separated into three separate parts
 

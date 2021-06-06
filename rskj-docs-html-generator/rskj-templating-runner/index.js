@@ -2,30 +2,14 @@
 
 'use strict';
 
-const fs = require('fs-extra');
 const process = require('process');
-
-const extract = require('./extract');
+const extractWrapper = require('./extract-wrapper');
 
 // Get the path argument
-const argPath = process.argv.slice(2)[0];
+const argPath = process.env.npm_config_inputJson;
 
-startProcess(argPath);
+extractWrapper.startProcess(argPath);
 
-function startProcess(inputJsonFilePath) {
-  if(!inputJsonFilePath) {
-    throw 'There was no input json file path passed';
-  }
+console.log('HTML-SUCCESS');
 
-  const htmlPath = '../rskj-docs';
-  extract.clean(htmlPath);
-
-  const rawdata = fs.readFileSync(inputJsonFilePath);
-  const documentationJson = JSON.parse(rawdata);
-
-  extract.processAppComponent(documentationJson, htmlPath);
-
-  // This is used as a success code from the parent script
-  console.log('HTML-SUCCESS');
-}
 

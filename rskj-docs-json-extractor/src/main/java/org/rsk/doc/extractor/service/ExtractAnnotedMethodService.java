@@ -24,6 +24,11 @@ public class ExtractAnnotedMethodService {
 
     private final JsonRpcDocMethodVisitor jsonRpcDocMethodVisitor = new JsonRpcDocMethodVisitor();
 
+    /**
+     * Extracts methods grouped by any method overloads. This will be the basis for generating each method section in our json
+     * @param parseResults parsed results
+     * @return methods grouped by method overloads
+     */
     public Map<String, List<MethodAndAnnotation>> extractAnnotatedMethods(List<ParseResult<CompilationUnit>> parseResults) {
         List<MethodAndAnnotation> methods = parseResults.stream()
             .map(parseResult -> parseResult.getResult())
@@ -36,7 +41,7 @@ public class ExtractAnnotedMethodService {
             })
             .collect(Collectors.toList());
 
-        // We group methods for method overloads
+        // We group methods for method overloads, there can be many methods for one name
         return methods.stream()
             .collect(Collectors.groupingBy(methodDeclaration -> methodDeclaration.getMethodDeclaration().getName().getIdentifier()));
     }

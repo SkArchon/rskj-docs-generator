@@ -48,6 +48,12 @@ public class ClassProcessorService {
         }
     }
 
+    /**
+     * Load Class by searching from the parsed results using the class name
+     * @param parseResults parsed results
+     * @param searchClassName class name to be found
+     * @return class (in an optional) if found
+     */
     private Optional<ClassOrInterfaceDeclaration> searchForClass(
             List<ParseResult<CompilationUnit>> parseResults, String searchClassName) {
         Optional<ClassOrInterfaceDeclaration> searchClassOptional = parseResults.stream()
@@ -63,6 +69,12 @@ public class ClassProcessorService {
         return searchClassOptional;
     }
 
+    /**
+     * In certain instances where there is a DTO or such we want to make sure that this parameter
+     * gets documented, so we process this class and store it to present it in the final json.
+     * The format is currently a typescript interface, the java class is converted to a ts interface
+     * @param searchClass
+     */
     private void convertClassToModel(ClassOrInterfaceDeclaration searchClass) {
         StringBuilder stringBuilder = new StringBuilder();
 
@@ -70,6 +82,7 @@ public class ClassProcessorService {
         String interfaceTitle = "interface " + className + " {\n";
         stringBuilder.append(interfaceTitle);
 
+        // Loop through all the fields in the class and add them as a typecript interface field
         searchClass.getMembers()
             .stream()
             .flatMap(bodyDeclaration ->
@@ -110,6 +123,8 @@ public class ClassProcessorService {
 
             String setDocumentationType = processBinaryExprString(processedPairValues.get("documentationType"));
 
+            // In certain cases a DTO can have another DTO inside of it, in this case we want to add the child
+            // DTO to our typescript interfaces
             processedPairValues.get("processClassNames")
                 .asArrayInitializerExpr()
                 .getValues()
@@ -142,6 +157,10 @@ public class ClassProcessorService {
         }
     }
 
+    /**
+     * Class visitor which is used by javaparser to visit all the classes
+     * and find the classes that we require
+     */
     private class ClassWithFilterVisitor extends VoidVisitorAdapter<ClassCollectorStateWrapper> {
         @Override
         public void visit(ClassOrInterfaceDeclaration n, ClassCollectorStateWrapper wrapper) {

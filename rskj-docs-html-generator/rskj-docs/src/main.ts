@@ -6,9 +6,7 @@ import 'highlight.js/styles/tomorrow-night-bright.css' // or other highlight.js 
 
 // Tell Vue.js to use vue-highlightjs
 Vue.use(VueHighlightJS)
-
 Vue.config.productionTip = false
-
 
 new Vue({
   render: h => h(App)

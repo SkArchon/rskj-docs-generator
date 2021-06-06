@@ -54,6 +54,11 @@ public class ExtractorInstructions {
         return jsonMapper.writeValueAsString(processedDoc);
     }
 
+    /**
+     * Loop through all the methods and get method details for each method
+     * @param methods method list
+     * @return processed methods
+     */
     private List<MethodDetails> getMethodDetails(Map<String, List<MethodAndAnnotation>> methods) {
         List<MethodDetails> methodDetails = methods.entrySet()
             .stream()

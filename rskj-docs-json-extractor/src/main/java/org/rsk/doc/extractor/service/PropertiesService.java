@@ -18,10 +18,12 @@ public class PropertiesService {
     @Setter
     private String yamlPath;
 
+    // Store all the parse results
     @Getter
     @Setter
     private List<ParseResult<CompilationUnit>> parseResults;
 
+    // Store default values of the annotations
     @Getter
     @Setter
     private Map<String, Map<String, Expression>> annotationDefaultValues;

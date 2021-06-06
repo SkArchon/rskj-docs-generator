@@ -7,11 +7,22 @@
 
     &--run-button {
         width: 100%;
+        margin-left: 10px;
     }
 
     &--try-button {
         float:right;
     }
+
+    &--reset-button {
+        color: #000000;
+        background: none;
+        box-shadow: inset 0px 0px 0px 2px #1598f5;
+    }
+}
+
+.Run-Button-List-Wrapper {
+    display: flex;
 }
 
 .Button:disabled {
@@ -21,4 +32,32 @@
 pre {
     white-space: inherit;
     margin-top: 5px;
+}
+
+.schemar-error-description {
+    margin-top: 20px;
+    color: #790e0e;
+    font-size: 14px;
+}
+
+a:hover {
+    color: #0056b3;
+    text-decoration: underline;
+}
+a {
+    color: #007bff;
+    text-decoration: none;
+    background-color: transparent;
+}
+
+.schema-errors {
+    > * {
+        background: #efefef;
+        font-size: 11px;
+        color: #790e0e !important;
+    }
+
+}
+.schema-errors span.hljs-string {
+    color: rgb(255, 38, 38) !important;
 }

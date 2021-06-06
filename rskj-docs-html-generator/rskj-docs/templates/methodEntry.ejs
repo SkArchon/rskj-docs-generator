@@ -69,7 +69,7 @@ ordinalSuffixOf = function(i) {
                                     </div>
                                     <% if(inputParameter.modelKey) { %>
                                         <div class="Method-Wrapper__body__request__input-parameters__position-wrapper__body__model">
-                                            <a href="#<%= inputParameter.modelKey %>">
+                                            <a @click="navigateToModelRequest<%= inputParameter.modelKey %>" class="Method-Wrapper__body__response__response-results__model__link">
                                                 Model: <%= inputParameter.modelKey %>
                                             </a>
                                         </div>
@@ -103,21 +103,36 @@ ordinalSuffixOf = function(i) {
                     </template>
                     <template v-if="runMode">
                         <textarea class="Method-Wrapper__body__request__request-body__code__entry"
-                            v-model="tryRequest" spellcheck="false"></textarea>
+                        v-model="tryRequest" @change="clearValidationErrors" spellcheck="false"></textarea>
                     </template>
                 </div>
             </div>
 
             <template v-if="runMode">
-                <button class="Button Button--run-button" :disabled="requestPending" @click="runCall">
-                    <template v-if="requestPending">
-                        <div class="spinner-border spinner-border-sm"></div>
-                        Running Request
-                    </template>
-                    <template v-if="!requestPending">
-                        Run Request
-                    </template>
-                </button>
+                <div class="Run-Button-List-Wrapper">
+                    <button class="Button Button--reset-button" :disabled="requestPending" @click="resetTryRequest">
+                        Reset
+                    </button>
+                    <button class="Button Button--run-button" :disabled="requestPending" @click="runCall">
+                        <template v-if="requestPending">
+                            <div class="spinner-border spinner-border-sm"></div>
+                            Running Request
+                        </template>
+                        <template v-if="!requestPending">
+                            Run Request
+                        </template>
+                    </button>
+                </div>
+                <template v-if="requestValidationFailed">
+                    <div>
+                        <div class="schemar-error-description">
+                            We sent your request to the server (but we detected the following issues when validating your request against the method schema).
+                        </div>
+                        <pre v-highlightjs="requestValidationErrors" class="schema-errors">
+                            <code class="json"></code>
+                        </pre>
+                    </div>
+                </template>
             </template>
         </div>
 
@@ -157,7 +172,7 @@ ordinalSuffixOf = function(i) {
                                     </div>
                                     <% if(responseDetail.modelKey) { %>
                                         <div class="Method-Wrapper__body__response__response-results__model">
-                                            <a href="#<%= responseDetail.modelKey %>">
+                                            <a @click="navigateToModelResponse<%= responseDetail.modelKey %>" class="Method-Wrapper__body__response__response-results__model__link">
                                                 Model: <%= responseDetail.modelKey %>
                                             </a>
                                         </div>
@@ -208,6 +223,16 @@ ordinalSuffixOf = function(i) {
                                         <code class="json"></code>
                                     </pre>
                                 </div>
+                                <template v-if="responseValidationFailed">
+                                  <div>
+                                      <div class="schemar-error-description">
+                                          The successful response has the following validation errors in it.
+                                      </div>
+                                      <pre v-highlightjs="responseValidationErrors" class="schema-errors">
+                                          <code class="json"></code>
+                                      </pre>
+                                  </div>
+                              </template>
                             </div>
                         </div>
                       </div>
@@ -233,6 +258,16 @@ ordinalSuffixOf = function(i) {
     import { Component, Prop, Vue } from 'vue-property-decorator';
     import axios from 'axios';
     import { COMMON_JSON_RPC_VALUES, INDENT_LENGTH_JSON_STRINGIFY } from '../constants';
+    import { validate } from 'jsonschema';
+    import { EventBus } from '../event-bus';
+
+    <% if(processedAdditionalData.hasRequestSchema) { %>
+        import * as requestSchema from '../schema/request/<%= processedAdditionalData.className %>.json';
+    <% } %>
+
+    <% if(processedAdditionalData.hasResponseSchema) { %>
+        import * as responseSchema from '../schema/response/<%= processedAdditionalData.className %>.json';
+    <% } %>
 
     @Component
     export default class <%= processedAdditionalData.className %> extends Vue {
@@ -244,6 +279,12 @@ ordinalSuffixOf = function(i) {
       public requestPending: boolean = false;
       public responseResult: any | null = null;
       public sentResponseCode: string | null = null;
+
+      public requestValidationFailed = false;
+      public requestValidationErrors: string | null = null;
+
+      public responseValidationFailed = false;
+      public responseValidationErrors: string | null = null;
 
       public methodType = '<%= documentationDataset.methodType %>';
       public methodName = '<%= documentationDataset.method %>';
@@ -263,8 +304,23 @@ ordinalSuffixOf = function(i) {
     
         this.ranOnce = true;
       }
+
+      resetTryRequest() {
+        this.tryRequest = this.processJson(this.requestExample[0]);
+      }
+
+      clearValidationErrors() {
+        this.requestValidationFailed = false;
+        this.requestValidationErrors = null;
+        this.responseValidationFailed = false;
+        this.responseValidationErrors = null;
+      }
     
       runCall() {    
+        <% if(processedAdditionalData.hasRequestSchema) { %>
+            this.validateSchema((requestSchema as any).default, 'request', this.tryRequest);
+        <% } %>
+
         const methodType: any = this.methodType;
     
         switch (methodType) {
@@ -280,6 +336,57 @@ ordinalSuffixOf = function(i) {
         }
       }
 
+      public validateSchema(schema, prefix, value) {
+          try {
+            const json = (typeof value == 'string') ? JSON.parse(value) : value;
+            const validationResult = validate(json, schema);
+            const validationFailed = validationResult.errors.length > 0;
+            const validationErrors = JSON.stringify(validationResult.errors, null, INDENT_LENGTH_JSON_STRINGIFY);
+
+            if(prefix === 'request') {
+              this.requestValidationFailed = validationFailed;
+              this.requestValidationErrors = validationErrors;
+            }
+            else if(prefix === 'response') {
+              this.responseValidationFailed = validationFailed;
+              this.responseValidationErrors = validationErrors;
+            }
+          } catch(error) {
+              const message = 'An error occurred when trying to validate the request format';
+              const validationErrors = JSON.stringify({ error: message }, null, INDENT_LENGTH_JSON_STRINGIFY);
+
+              if(prefix === 'request') {
+                this.requestValidationFailed = true;
+                this.requestValidationErrors = validationErrors;
+              } else if(prefix === 'response') {
+                this.responseValidationFailed = true;
+                this.responseValidationErrors = validationErrors;
+              }
+          }
+      }
+
+      <% documentationDataset.requestDetails.inputParams.forEach((inputPosition, index) => { %>
+        <% inputPosition.forEach((inputParameter) => { %>
+            <% if(inputParameter && inputParameter.modelKey) { %>
+                navigateToModelRequest<%= inputParameter.modelKey %>() {
+                    EventBus.$emit('Model-Expand', '<%= inputParameter.modelKey %>');
+                    const navigateElement = document.getElementById('<%= inputParameter.modelKey %>');
+                    navigateElement?.scrollIntoView({ behavior: "smooth" });
+                }
+            <% } %>
+        <% }) %>
+      <% }) %>
+
+      <% documentationDataset.responseDetails.forEach((responseDetail) => { %>
+        <% if(responseDetail.modelKey) { %>
+            navigateToModelResponse<%= responseDetail.modelKey %>() {
+                EventBus.$emit('Model-Expand', '<%= responseDetail.modelKey %>');
+                const navigateElement = document.getElementById('<%= responseDetail.modelKey %>');
+                navigateElement?.scrollIntoView({ behavior: "smooth" });
+            }
+        <% } %>
+      <% }) %>
+
       processJson(json) {
         const parsed = JSON.parse(json);
         const processed = {
@@ -288,6 +395,16 @@ ordinalSuffixOf = function(i) {
             ...parsed
         };
         return JSON.stringify(processed, null, INDENT_LENGTH_JSON_STRINGIFY);
+      }
+      
+      private isJsonString(string) {
+        try {
+          JSON.parse(string);
+          return true;
+        }
+        catch (e) {
+          return false;
+        }
       }
 
       runReadTransaction(requestBody) {
@@ -299,13 +416,21 @@ ordinalSuffixOf = function(i) {
         };
         axios.post(Vue.prototype.$readHostUrl, requestBody, options)
           .then((response) => {
+            const isError = !!response.data.error;
             this.requestPending = false;
             this.responseResult = {
-                statusText: 'Success',
+                statusText: (isError) ? 'Error' : 'Success',
                 status: response.status,
-                ok: true,
+                errorCode: (isError) ? response.data.error.code : null,
+                ok: !isError,
               };
             this.sentResponseCode = JSON.stringify(response.data, null, INDENT_LENGTH_JSON_STRINGIFY);
+
+            <% if(processedAdditionalData.hasResponseSchema) { %>
+              if(!isError) {
+                this.validateSchema((responseSchema as any).default, 'response', response.data);
+              }
+            <% } %>
           })
           .catch(error => {
             this.requestPending = false;
@@ -344,13 +469,16 @@ ordinalSuffixOf = function(i) {
             const processedRequest = JSON.parse(request);
 
             web3Ethereum.request(processedRequest)
-                .then(txnHash => {
+                .then(response => {
                     this.requestPending = false;
+
+                    const isJson = this.isJsonString(response);
                     this.responseResult = {
                         ok: true,
                         statusText: 'Success'
                     };
-                    this.sentResponseCode = txnHash;
+
+                    this.sentResponseCode = response;
                 })
                 .catch(errorResponse => {
                     try {
