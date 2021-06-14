@@ -79,7 +79,7 @@ it('reset errors', () => {
 
 describe('run read method', () => {
 
-  it('with invalid requet for request schema', async () => {
+  it('with invalid request for request schema', async () => {
     const wrapper = mount(EthgetBlockByNumber)
     const vm = (wrapper.vm as any);
   
@@ -88,7 +88,7 @@ describe('run read method', () => {
     vm.tryRequest = JSON.stringify({ value: 'dataset' });
 
     const response = SUCCESSFUL_METHOD_WITH_VALID_SCHEMA;
-    (axios.post as any).mockImplementation(() => Promise.resolve(response))
+    (axios.post as any).mockImplementation(() => Promise.resolve(response));
   
     vm.runCall();
   
@@ -107,12 +107,51 @@ describe('run read method', () => {
     vm.tryRequest = JSON.stringify(SUCCESSFUL_TRY_REQUEST);
 
     const response = { data: {}, status: 'Successful' };
-    (axios.post as any).mockImplementation(() => Promise.resolve(response))
+    (axios.post as any).mockImplementation(() => Promise.resolve(response));
   
     vm.runCall();
   
     await Vue.nextTick();
   
+    expect(vm.responseValidationFailed).toBe(true);
+    expect(JSON.parse(vm.responseValidationErrors).length).toBeGreaterThan(0);
+  })
+
+  it('with request schema exception', async () => {
+    const wrapper = mount(EthgetBlockByNumber)
+    const vm = (wrapper.vm as any);
+    vm.methodType = 'READ';
+
+    window.alert = () => {};
+
+    const responseResult = 'Test';
+    vm.responseResult = responseResult;
+
+    (axios.post as any).mockImplementation(() => Promise.resolve('value'));
+
+    vm.runCall();
+
+    await Vue.nextTick();
+
+    expect(vm.requestValidationFailed).toBe(true);
+    expect(JSON.parse(vm.requestValidationErrors).length).toBeGreaterThan(0);
+  })
+
+  it('with response schema exception', async () => {
+    const wrapper = mount(EthgetBlockByNumber)
+    const vm = (wrapper.vm as any);
+  
+    vm.methodType = 'READ';
+  
+    vm.tryRequest = JSON.stringify(SUCCESSFUL_TRY_REQUEST);
+
+    const response = { data: 'ee', status: 'Successful' };
+    (axios.post as any).mockImplementation(() => Promise.resolve(response));
+
+    vm.runCall();
+
+    await Vue.nextTick();
+
     expect(vm.responseValidationFailed).toBe(true);
     expect(JSON.parse(vm.responseValidationErrors).length).toBeGreaterThan(0);
   })
@@ -147,9 +186,96 @@ describe('run read method', () => {
     expect(vm.responseValidationErrors).toBe('[]');
   })
 
+  it('with failure with 200 http response', async () => {
+    const wrapper = mount(EthgetBlockByNumber)
+    const vm = (wrapper.vm as any);
+  
+    vm.methodType = 'READ';
+  
+    vm.tryRequest = JSON.stringify({ value: 'dataset' });
+
+    const errorCode = 'someCode';
+    const response = { data: { error: { code: errorCode } } };
+    (axios.post as any).mockImplementation(() => Promise.resolve(response))
+  
+    vm.runCall();
+  
+    await Vue.nextTick();
+  
+    const responseResult = {
+      statusText: 'Error',
+      status: undefined,
+      errorCode: errorCode,
+      ok: false
+    };
+
+    expect(vm.responseResult).toStrictEqual(responseResult);
+    expect(JSON.parse(vm.sentResponseCode)).toStrictEqual(response.data);
+  })
+
+  it('with failure with 500 http response with parseable json', async () => {
+    const wrapper = mount(EthgetBlockByNumber)
+    const vm = (wrapper.vm as any);
+  
+    vm.methodType = 'READ';
+  
+    vm.tryRequest = JSON.stringify({ value: 'dataset' });
+
+    const errorCode = 'someCode';
+    const responseError = { error: { code: errorCode, description: 'descriptionValue' } };
+    const response = {
+      request: {
+        response: JSON.stringify(responseError)
+      } 
+    };
+    (axios.post as any).mockImplementation(() => Promise.reject(response))
+  
+    vm.runCall();
+  
+    await Vue.nextTick();
+  
+    const responseResult = {
+      errorCode: errorCode,
+      ok: false
+    };
+    
+    expect(vm.responseResult).toStrictEqual(responseResult);
+    expect(JSON.parse(vm.sentResponseCode)).toStrictEqual(responseError.error);
+  })
+
+  it('with failure with 500 http response with unparseable json', async () => {
+    const wrapper = mount(EthgetBlockByNumber)
+    const vm = (wrapper.vm as any);
+  
+    vm.methodType = 'READ';
+  
+    vm.tryRequest = JSON.stringify({ value: 'dataset' });
+
+    const errorCode = 'someCode';
+    const responseError = { error: { code: errorCode, description: 'descriptionValue' } };
+    const response = {
+      request: {
+        response: JSON.stringify(responseError) + "ee"
+      } 
+    };
+    (axios.post as any).mockImplementation(() => Promise.reject(response))
+  
+    vm.runCall();
+  
+    await Vue.nextTick();
+  
+    const responseResult = {
+      errorCode: 'Unknown',
+      ok: false
+    };
+    
+    expect(vm.responseResult).toStrictEqual(responseResult);
+    expect(vm.sentResponseCode).toStrictEqual('');
+  })
+
 })
 
-describe('run read transaction', () => {
+describe('run write transaction', () => {
 
   it('without a wallet connected', () => {
     const wrapper = mount(EthgetBlockByNumber)
@@ -226,6 +352,29 @@ describe('run read transaction', () => {
       const expectedResult = { errorCode : errorCode, ok: false };
       expect(vm.responseResult).toStrictEqual(expectedResult);
       expect(JSON.parse(vm.sentResponseCode)).toStrictEqual(errorResponse);
+      expect(vm.requestPending).toBe(false);
+    })
+
+    it('request failed with an error occuring', async () => {
+      const wrapper = mount(EthgetBlockByNumber)
+      const vm = (wrapper.vm as any);
+      vm.methodType = 'WRITE';
+
+      Vue.prototype.$web3Result = {
+        request: () => {
+          throw "some error";
+        }
+      }
+      vm.tryRequest = JSON.stringify(SUCCESSFUL_TRY_REQUEST);
+
+      vm.runCall();
+  
+      await Vue.nextTick();
+
+      const expectedError = 'An unknown error occurred locally on the browser while processing the request';
+      const expectedResult = { errorCode : 'Unknown', ok: false };
+      expect(vm.responseResult).toStrictEqual(expectedResult);
+      expect(vm.sentResponseCode).toBe(expectedError);
       expect(vm.requestPending).toBe(false);
     })
 

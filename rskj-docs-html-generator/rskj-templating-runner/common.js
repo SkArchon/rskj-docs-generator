@@ -28,7 +28,7 @@ class Common {
 
   // Create a json rpc request for printing as code by merging generic values
   // along with any custom values
-  processJson(json, skipCasting, method) {
+  processJson(json, method) {
     const parsed = JSON.parse(json);
     const processed = {
       ...COMMON_JSON_RPC_VALUES,
@@ -37,11 +37,7 @@ class Common {
     };
     const processedJsonString = JSON.stringify(processed, null, INDENT_LENGTH_JSON_STRINGIFY);
 
-    const casted = (!skipCasting)
-      ? castString(processedJsonString)
-      : processedJsonString;
-
-    return casted;
+    return processedJsonString;
   }
 
   // Replace any curly braces with a hashed value

@@ -34,10 +34,15 @@ pre {
     margin-top: 5px;
 }
 
-.schemar-error-description {
+.schema-error-description {
     margin-top: 20px;
     color: #790e0e;
     font-size: 14px;
+}
+
+.schema-error-scroller {
+    max-width: 400px;
+    overflow: auto;
 }
 
 a:hover {

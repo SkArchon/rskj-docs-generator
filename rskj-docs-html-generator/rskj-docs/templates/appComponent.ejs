@@ -157,12 +157,12 @@
       const networkUrl = localStorage['networkUrl'];
 
       if(networkUrl) {
-        Vue.prototype.$readHostUrl = this.networksList[0].url;
+        Vue.prototype.$readHostUrl = networkUrl;
         this.details.networkUrl = networkUrl;
         
         this.details.networkUrlOnSelect = this.matchSelectedNetworkUrl(networkUrl);
       } else {
-        Vue.prototype.$readHostUrl = this.networksList[0].url;
+        Vue.prototype.$readHostUrl = this.details.networkUrl;
         localStorage['networkUrl'] = this.details.networkUrl;
       }
     }

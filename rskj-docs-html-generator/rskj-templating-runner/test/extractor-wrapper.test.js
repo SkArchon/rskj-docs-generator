@@ -7,6 +7,7 @@ const common = require('../common');
 const fs = require('fs-extra');
 
 const extractWrapper = require('../extract-wrapper');
+const { METHOD_INPUT } = require('./common.constants');
 
 test('start process with invalid value', () => {
   const errorMessage = 'There was no input json file path passed';

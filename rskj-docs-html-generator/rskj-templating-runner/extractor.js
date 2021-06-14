@@ -73,7 +73,7 @@ class Extractor {
     const actualRequestExamples = [...requestExamples];
 
     requestExamples.forEach((requestExample, index) => {
-      const processedJson = common.processJson(requestExample, true, method);
+      const processedJson = common.processJson(requestExample, method);
       requestExamples[index] = common.castString(hljs.highlight(processedJson, { language: 'json' }).value);
     });
 
@@ -90,7 +90,7 @@ class Extractor {
     // Process all responses (also replace new line with br to drop it to separate lines)
     if (responseDetails) {
       documentationDataset.responseDetails = responseDetails.map((response) => {
-        const processedExample = common.processJson(response.responseExample, true, method);
+        const processedExample = common.processJson(response.responseExample, method);
         // Create description as markdown
         return {
           ...response,
@@ -116,10 +116,10 @@ class Extractor {
     common.processHtml('methodEntry', processedData, className);
 
     // When there is a schema we want to process it as a json as well
-    if(!processedData.hasRequestSchema) {
+    if(processedData.processedAdditionalData.hasRequestSchema) {
       common.processSchema(requestDetails.schema, className, 'request');
     }
-    if(!processedData.hasResponseSchema) {
+    if(processedData.processedAdditionalData.hasResponseSchema) {
       common.processSchema(documentationDataset.responseSchema, className, 'response');
     }
   }

@@ -91,6 +91,25 @@ test('should clean directories', () => {
   expect(fs.writeFileSync).toHaveBeenCalledWith(`${ROOT_PATH}/src/schema/request/schemafile.json`, JSON.stringify(schema));
 });
 
+
+test('process json', () => {
+  const json = { value: { newerValue: 'somevalue { }' } };
+  const methodName = 'someMethod';
+
+  const result = common.processJson(JSON.stringify(json), methodName);
+
+  const expectedResult = {
+    "id": 1,
+    "jsonrpc": "2.0",
+    "method": methodName,
+    "value": {
+      "newerValue": "somevalue { }"
+    }
+  };
+  expect(result).toBe(JSON.stringify(expectedResult, null, 4));
+})
+
+
 describe('should process html with file name', () => {
   const processData = { "value": "somevalue" };
   const fileName = "htmlfile";

@@ -125,7 +125,7 @@ ordinalSuffixOf = function(i) {
                 </div>
                 <template v-if="requestValidationFailed">
                     <div>
-                        <div class="schemar-error-description">
+                        <div class="schema-error-description">
                             We sent your request to the server (but we detected the following issues when validating your request against the method schema).
                         </div>
                         <pre v-highlightjs="requestValidationErrors" class="schema-errors">
@@ -225,12 +225,14 @@ ordinalSuffixOf = function(i) {
                                 </div>
                                 <template v-if="responseValidationFailed">
                                   <div>
-                                      <div class="schemar-error-description">
+                                      <div class="schema-error-description">
                                           The successful response has the following validation errors in it.
                                       </div>
-                                      <pre v-highlightjs="responseValidationErrors" class="schema-errors">
-                                          <code class="json"></code>
-                                      </pre>
+                                      <div class="schema-error-scroller">
+                                        <pre v-highlightjs="responseValidationErrors" class="schema-errors">
+                                            <code class="json"></code>
+                                        </pre>
+                                      </div>
                                   </div>
                               </template>
                             </div>
@@ -353,7 +355,7 @@ ordinalSuffixOf = function(i) {
             }
           } catch(error) {
               const message = 'An error occurred when trying to validate the request format';
-              const validationErrors = JSON.stringify({ error: message }, null, INDENT_LENGTH_JSON_STRINGIFY);
+              const validationErrors = JSON.stringify([{ error: message }], null, INDENT_LENGTH_JSON_STRINGIFY);
 
               if(prefix === 'request') {
                 this.requestValidationFailed = true;
